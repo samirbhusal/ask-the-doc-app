@@ -1,6 +1,7 @@
 import os
 import streamlit as st
 
+from handle_key import get_api_key
 from main import generate_response
 
 # Page title
@@ -14,17 +15,17 @@ uploaded_file = st.file_uploader('Upload an article', type=['txt', 'pdf', 'docx'
 query_text = st.text_input('Enter your question:', placeholder='Please provide a short summary.',
                            disabled=not uploaded_file)
 
-# Form input and query
-result = []
-with st.form('myform', clear_on_submit=True):
-    openai_api_key = os.getenv("OPENAI_API_KEY") if os.getenv("OPENAI_API_KEY") is not None else None
-    if not openai_api_key:
-        openai_api_key = st.text_input('OpenAI API Key', type='password', disabled=not (uploaded_file and query_text))
-    submitted = st.form_submit_button('Submit', disabled=not (uploaded_file and query_text))
-    if submitted and openai_api_key.startswith('sk-'):
-        with st.spinner('Calculating...'):
-            response = generate_response(uploaded_file, openai_api_key, query_text)
-            result.append(response)
-            del openai_api_key
-            if len(result):
-                st.info(response)
+
+with st.form('myform'):
+    openai_api_key = get_api_key(uploaded_file, query_text)
+    submitted = st.form_submit_button('Submit')
+    if submitted:
+        if not openai_api_key:
+            st.error("Please provide an OpenAI API key.")
+        else:
+            with st.spinner("Calculating..."):
+                try:
+                    response = generate_response(uploaded_file, openai_api_key, query_text)
+                    st.info(response)
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
