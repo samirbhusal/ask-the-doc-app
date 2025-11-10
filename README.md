@@ -4,7 +4,9 @@ Ask-the-Doc-App/
 └── requirements.txt
 
 Installation
-pip install -r requirements.txt
+
+pip install -r requirement.txt
 
 Running the App
+
 streamlit run fileName.py

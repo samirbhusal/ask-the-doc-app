@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 
-from main import generate_response
+from src.main import generate_response
 
 # Page title
 st.set_page_config(page_title='🦜🦜 Ask the Doc App')
