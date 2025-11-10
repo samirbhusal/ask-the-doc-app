@@ -3,7 +3,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.chains import RetrievalQA
-from src.extract_file import extract_text_from_file
+from extract_file import extract_text_from_file
 
 
 def generate_response(uploaded_file, openai_api_key, query_text):
