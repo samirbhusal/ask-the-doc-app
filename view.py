@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 
 from handle_key import get_api_key

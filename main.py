@@ -1,35 +1,40 @@
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from extract_file import extract_text_from_file
 
 
 def generate_response(uploaded_file, openai_api_key, query_text):
     documents = []
-    # Load document if file is uploaded
-    if uploaded_file is not None:
+
+    if uploaded_file:
+        # Extract text from each file
         for file in uploaded_file:
             text = extract_text_from_file(file)
-            if text.strip():  # avoid empty docs
+            if text.strip():
                 documents.append(text)
 
-        # Split documents into chunks
-        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-
+        # Split into chunks
+        text_splitter = CharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200
+        )
         texts = text_splitter.create_documents(documents)
-        # Select embeddings
+
+        # Embeddings
         embeddings = OpenAIEmbeddings(
             api_key=openai_api_key,
             model="text-embedding-3-small"
         )
 
-        # Create a vectorstore from documents
+        # Vector store
         db = Chroma.from_documents(texts, embeddings)
-        # Create retriever interface
+
+        # Retriever
         retriever = db.as_retriever(search_kwargs={"k": 3})
 
+        # LLM
         llm = ChatOpenAI(
             api_key=openai_api_key,
             model="gpt-4o-mini",
@@ -37,11 +42,13 @@ def generate_response(uploaded_file, openai_api_key, query_text):
             temperature=0
         )
 
-        # Create QA chain
+        # QA chain
         qa = RetrievalQA.from_chain_type(
             llm=llm,
-            chain_type='stuff',
+            chain_type="stuff",
             retriever=retriever
         )
-        return qa.run(query_text)
+
+        return qa.invoke(query_text)
+
     return None
