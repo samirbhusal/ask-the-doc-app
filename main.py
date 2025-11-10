@@ -1,3 +1,13 @@
+import os
+
+# Remove any proxy variables Streamlit sets behind the scenes
+for key in ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"]:
+    if key in os.environ:
+        del os.environ[key]
+
+# Prevent OpenAI from using a proxy accidentally
+os.environ["NO_PROXY"] = "*"
+
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
@@ -15,6 +25,9 @@ def generate_response(uploaded_file, openai_api_key, query_text):
             if text.strip():
                 documents.append(text)
 
+        if not documents:
+            return "Error: No readable text found in uploaded files."
+
         # Split into chunks
         text_splitter = CharacterTextSplitter(
             chunk_size=1000,
@@ -25,7 +38,8 @@ def generate_response(uploaded_file, openai_api_key, query_text):
         # Embeddings
         embeddings = OpenAIEmbeddings(
             api_key=openai_api_key,
-            model="text-embedding-3-small"
+            model="text-embedding-3-small",
+            organization=None
         )
 
         # Vector store
@@ -46,7 +60,8 @@ def generate_response(uploaded_file, openai_api_key, query_text):
         qa = RetrievalQA.from_chain_type(
             llm=llm,
             chain_type="stuff",
-            retriever=retriever
+            retriever=retriever,
+            return_source_documents=False  # prevents huge prompt payloads
         )
 
         return qa.invoke(query_text)
