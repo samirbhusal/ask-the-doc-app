@@ -25,6 +25,6 @@ with st.form('myform'):
             with st.spinner("Calculating..."):
                 try:
                     response = generate_response(uploaded_file, openai_api_key, query_text)
-                    st.info(response)
+                    st.info(response["result"])
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
